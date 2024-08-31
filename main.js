@@ -1,10 +1,21 @@
 import gsap from 'gsap';
+import Splitting from "splitting";
+
+const targets = [...document.querySelectorAll("[split-text]")];
+
+const results = Splitting({target: targets, by: "chars"});
+
+//Get all the words and wrap each word in a span
+const chars = results.map((result) => result.chars).flat();
 
 // Create a matchMedia instance
 const mm = gsap.matchMedia();
 
 // Define a context for the min-width of 768px
 mm.add("(min-width: 768px)", () => {
+    //Get all the characters and move them off the screen
+    gsap.set(chars, {yPercent: 120, opacity: 0});
+
     const leadersItems = document.querySelectorAll('.leaders-cc-item');
     let activeIndex = null; // Keep track of the currently active (open) item index
     let isAnimating = false; // Flag to prevent multiple animations at once
@@ -12,7 +23,8 @@ mm.add("(min-width: 768px)", () => {
     leadersItems.forEach((item, index) => {
         const tl = gsap.timeline({ paused: true });
         tl.set(item, { zIndex: 10, ease: 'power2' })
-            .to(item, { width: 'auto', duration: 1.5, ease: 'power2.out' });
+            .to(item, { width: 'auto', duration: 1.5, ease: 'power2.out', invalidateOnRefresh: true });
+
 
         if (index !== 1) {
             tl.to(leadersItems[1], {
@@ -20,8 +32,11 @@ mm.add("(min-width: 768px)", () => {
                 zIndex: 9,
                 duration: 1.5,
                 ease: 'power2.out'
-            }, "<");
+            }, "<")
         }
+
+        tl.to(item.querySelectorAll('.char'), {yPercent: 0, opacity:1, duration: 1, ease: 'power2.out'}, ">-0.8");
+
 
         // Attach the timeline to the item so we can reference it later
         item.timeline = tl;
